@@ -1,7 +1,7 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import type { UserRole } from '@/types'
 import {
@@ -11,6 +11,8 @@ import {
   IconNews,
   IconShield,
   IconHome,
+  IconFinanceiro,
+  IconRelatorio,
 } from '@/components/icons'
 
 interface SidebarProps {
@@ -21,142 +23,199 @@ interface SidebarProps {
 export default function Sidebar({ role, nome }: SidebarProps) {
   const pathname = usePathname()
 
-  const linkClass = (href: string) => {
-    const ativo = pathname === href || pathname.startsWith(href + '/')
-    return `group flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-      ativo
-        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
-        : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
-    }`
-  }
+  const isAtivo = (href: string) =>
+    pathname === href || pathname.startsWith(href + '/')
+
+  const sectionLabel =
+    'pt-5 pb-2 px-4 text-[10px] uppercase tracking-[0.15em] font-bold'
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 min-h-screen flex flex-col">
-     
-         {/* Marca */}
-<div className="px-6 py-6 border-b border-gray-100">
-  <div className="flex items-center gap-3 mb-3">
-    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-white border border-gray-100">
-      <Image
-        src="/logo.png"
-        alt="Logotipo"
-        width={40}
-        height={40}
-        className="w-full h-full object-contain"
-      />
-    </div>
-    <div className="min-w-0">
-      <h2 className="text-sm font-semibold text-gray-900 tracking-tight truncate">
-        Painel
-      </h2>
-      <p className="text-[11px] text-gray-500 truncate">IEUCAA</p>
-    </div>
-  </div>
+    <aside
+      className="w-64 min-h-screen flex flex-col"
+      style={{ backgroundColor: 'var(--color-primary-dark)' }}
+    >
+      {/* Marca */}
+      <div className="px-5 py-6 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Logotipo"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="min-w-0">
+            <p
+              className="text-[13px] font-bold leading-tight truncate"
+              style={{ color: '#FFFFFF' }}
+            >
+              Direção da Juventude
+            </p>
+            <p
+              className="text-[10px] leading-tight truncate"
+              style={{ color: 'rgba(255, 255, 255, 0.55)' }}
+            >
+              IEUCAA · São Filipe
+            </p>
+          </div>
+        </div>
 
-  <p className="text-sm text-gray-500 truncate">{nome}</p>
-  <span className="inline-block mt-1.5 text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full capitalize">
-    {role}
-  </span>
-</div>
+        {/* Info utilizador */}
+        <div className="mt-5 pt-5 border-t border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">
+              <span
+                className="text-[13px] font-bold"
+                style={{ color: '#FFFFFF' }}
+              >
+                {nome.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p
+                className="text-[12px] font-medium truncate"
+                style={{ color: '#FFFFFF' }}
+              >
+                {nome}
+              </p>
+              <span
+                className="inline-block mt-0.5 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                style={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#FFFFFF',
+                }}
+              >
+                {role}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Navegação */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        <Link href="/admin/dashboard" className={linkClass('/admin/dashboard')}>
-          <IconDashboard />
-          <span>Dashboard</span>
-        </Link>
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <LinkItem
+          href="/admin/dashboard"
+          label="Dashboard"
+          Icone={IconDashboard}
+          ativo={isAtivo('/admin/dashboard')}
+        />
 
-        <Link href="/perfil" className={linkClass('/perfil')}>
-          <IconUser />
-          <span>Meu Perfil</span>
-        </Link>
+        <LinkItem
+          href="/perfil"
+          label="Meu Perfil"
+          Icone={IconUser}
+          ativo={isAtivo('/perfil')}
+        />
 
         {(role === 'admin' || role === 'superadmin') && (
-  <>
-    <p className="pt-5 pb-2 px-4 text-xs uppercase tracking-wider text-gray-400 font-semibold">
-      Gestão
-    </p>
+          <>
+            <p
+              className={sectionLabel}
+              style={{ color: 'rgba(255, 255, 255, 0.4)' }}
+            >
+              Gestão
+            </p>
 
-    <Link href="/admin/membros" className={linkClass('/admin/membros')}>
-      <IconUsers />
-      <span>Membros</span>
-    </Link>
+            <LinkItem
+              href="/admin/membros"
+              label="Membros"
+              Icone={IconUsers}
+              ativo={isAtivo('/admin/membros')}
+            />
+            <LinkItem
+              href="/admin/noticias"
+              label="Notícias"
+              Icone={IconNews}
+              ativo={isAtivo('/admin/noticias')}
+            />
+            <LinkItem
+              href="/admin/financeiro"
+              label="Financeiro"
+              Icone={IconFinanceiro}
+              ativo={isAtivo('/admin/financeiro')}
+            />
+          </>
+        )}
 
-    <Link href="/admin/noticias" className={linkClass('/admin/noticias')}>
-      <IconNews />
-      <span>Notícias</span>
-    </Link>
-
-    <Link href="/admin/financeiro" className={linkClass('/admin/financeiro')}>
-      <IconFinanceiro />
-      <span>Financeiro</span>
-    </Link>
-  </>
-)}
         {role === 'superadmin' && (
-  <>
-    <p className="pt-5 pb-2 px-4 text-xs uppercase tracking-wider text-gray-400 font-semibold">
-      Sistema
-    </p>
+          <>
+            <p
+              className={sectionLabel}
+              style={{ color: 'rgba(255, 255, 255, 0.4)' }}
+            >
+              Sistema
+            </p>
 
-    <Link href="/admin/usuarios" className={linkClass('/admin/usuarios')}>
-      <IconShield />
-      <span>Usuários</span>
-    </Link>
-
-    <Link href="/admin/relatorios" className={linkClass('/admin/relatorios')}>
-      <IconRelatorio />
-      <span>Relatórios</span>
-    </Link>
-  </>
-)}
+            <LinkItem
+              href="/admin/usuarios"
+              label="Usuários"
+              Icone={IconShield}
+              ativo={isAtivo('/admin/usuarios')}
+            />
+            <LinkItem
+              href="/admin/relatorios"
+              label="Relatórios"
+              Icone={IconRelatorio}
+              ativo={isAtivo('/admin/relatorios')}
+            />
+          </>
+        )}
       </nav>
 
-      {/* Rodapé */}
-      <div className="px-3 py-4 border-t border-gray-100">
+      {/* Rodapé — botão "Ir para o site" */}
+      <div className="px-3 py-4 border-t border-white/10">
         <Link
           href="/"
-          className="group flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-200"
+          className="group flex items-center justify-center gap-2 min-h-[42px] px-4 rounded-full text-[13px] font-semibold transition-all duration-200 hover:opacity-90"
+          style={{
+            backgroundColor: 'var(--color-primary)',
+            color: '#FFFFFF',
+          }}
         >
-          <IconHome />
+          <IconHome className="w-4 h-4" />
           <span>Ir para o site</span>
         </Link>
       </div>
     </aside>
   )
 }
-function IconRelatorio({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      strokeWidth={1.8}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-      />
-    </svg>
-  )
-}
 
-function IconFinanceiro({ className = 'w-5 h-5' }: { className?: string }) {
+/* Item de link com ícone + texto sempre branco */
+function LinkItem({
+  href,
+  label,
+  Icone,
+  ativo,
+}: {
+  href: string
+  label: string
+  Icone: (props: { className?: string }) => React.ReactElement
+  ativo: boolean
+}) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      strokeWidth={1.8}
+    <Link
+      href={href}
+      className={`group flex items-center gap-3 px-4 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
+        ativo
+          ? 'bg-white/15 shadow-[0_4px_16px_rgba(0,0,0,0.15)]'
+          : 'hover:bg-white/10'
+      }`}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
+      <span
+        className="flex-shrink-0"
+        style={{ color: ativo ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)' }}
+      >
+        <Icone className="w-[18px] h-[18px]" />
+      </span>
+      <span
+        style={{ color: ativo ? '#FFFFFF' : 'rgba(255, 255, 255, 0.75)' }}
+        className="group-hover:text-white transition-colors duration-200"
+      >
+        {label}
+      </span>
+    </Link>
   )
 }

@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import Hero from '@/components/public/Hero'
+import StatsSection from '@/components/public/StatsSection'
+import OQueFazemos from '@/components/public/OQueFazemos'
 import NoticiaCard from '@/components/public/NoticiaCard'
 import SobreSection from '@/components/public/SobreSection'
 import CultosSection from '@/components/public/CultosSection'
@@ -10,63 +12,63 @@ import type { Noticia } from '@/types'
 
 export default async function Home() {
   const supabase = await createClient()
-  const { data: noticias } = await supabase
-    .from('noticias')
-    .select('*')
-    .order('data_publicacao', { ascending: false })
-    .limit(3)
+
+  const [
+    { data: noticias },
+    { count: totalMembros },
+    { count: totalNoticias },
+  ] = await Promise.all([
+    supabase
+      .from('noticias')
+      .select('*')
+      .order('data_publicacao', { ascending: false })
+      .limit(3),
+    supabase.from('membros').select('*', { count: 'exact', head: true }),
+    supabase.from('noticias').select('*', { count: 'exact', head: true }),
+  ])
 
   return (
     <>
-      {/* #inicio */}
       <div id="inicio" className="scroll-mt-20">
         <Hero />
       </div>
 
-      {/* #noticias */}
-      <section id="noticias" className="py-24 scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-6">
+      <StatsSection
+        totalMembros={totalMembros ?? 0}
+        totalNoticias={totalNoticias ?? 0}
+      />
+
+      <OQueFazemos />
+
+      {/* NOTÍCIAS — fundo cinza */}
+      <section id="noticias" className="section bg-[#F8FAFC] scroll-mt-20">
+        <div className="container">
           <Reveal>
-            <div className="flex items-end justify-between mb-12 gap-6">
-              <div className="max-w-2xl">
-                <span className="text-xs font-semibold tracking-wider uppercase text-blue-700">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-12">
+              <div className="lg:col-span-4">
+                <span className="section-label">
+                  <span className="w-8 h-px bg-[#0D6EFD]" />
                   Notícias
                 </span>
-                <h2 className="mt-3 text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-                  Últimas Publicações
-                </h2>
-                <p className="mt-4 text-base text-gray-600 leading-relaxed">
-                  Fica a par das novidades, eventos e avisos da nossa
-                  paróquia.
-                </p>
               </div>
 
-              <Link
-                href="/noticias"
-                className="hidden md:inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-150 whitespace-nowrap"
-              >
-                Ver todas
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
+              <div className="lg:col-span-8 flex items-end justify-between gap-6">
+                <h2 className="section-title">Últimas publicações</h2>
+
+                <Link
+                  href="/noticias"
+                  className="hidden md:inline-flex btn btn-ghost whitespace-nowrap"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </Link>
+                  Ver todas
+                </Link>
+              </div>
             </div>
           </Reveal>
 
           {!noticias || noticias.length === 0 ? (
             <Reveal>
-              <div className="bg-gray-50 rounded-xl border border-gray-100 px-6 py-16 text-center">
-                <p className="text-sm text-gray-500">
+              <div className="card-static p-12 text-center">
+                <p className="text-[14px] text-[#64748B]">
                   Ainda não há notícias publicadas.
                 </p>
               </div>
@@ -82,23 +84,15 @@ export default async function Home() {
           )}
 
           <div className="mt-8 md:hidden">
-            <Link
-              href="/noticias"
-              className="block w-full text-center bg-blue-900 hover:bg-blue-800 text-white text-sm font-medium px-5 py-3 rounded-lg transition-colors duration-200"
-            >
+            <Link href="/noticias" className="btn btn-primary w-full">
               Ver todas as notícias
             </Link>
           </div>
         </div>
       </section>
 
-      {/* #sobre */}
       <SobreSection />
-
-      {/* #cultos */}
       <CultosSection />
-
-      {/* #contactos */}
       <ContactosSection />
     </>
   )

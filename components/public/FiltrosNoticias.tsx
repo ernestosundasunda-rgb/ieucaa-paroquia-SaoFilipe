@@ -32,10 +32,10 @@ export default function FiltrosNoticias() {
           <button
             key={cat.valor}
             onClick={() => handleClick(cat.valor)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+            className={`px-4 py-2 text-[13px] font-semibold rounded-full transition-all duration-200 ${
               ativo
-                ? 'bg-blue-900 text-white shadow-sm shadow-blue-900/20'
-                : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-200 hover:text-blue-900'
+                ? 'bg-[#082F6B] text-white'
+                : 'bg-white text-[#64748B] border border-[#E2E8F0] hover:border-[#0D6EFD]/40 hover:text-[#0D6EFD]'
             }`}
           >
             {cat.label}

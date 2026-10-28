@@ -34,7 +34,6 @@ export default async function NoticiaDetalhePage({ params }: Props) {
   const categoriaNome =
     CATEGORIAS_NOTICIA[noticiaTipada.categoria] ?? noticiaTipada.categoria
 
-  // Notícias relacionadas (mesma categoria, exceto a atual)
   const { data: relacionadas } = await supabase
     .from('noticias')
     .select('*')
@@ -44,21 +43,26 @@ export default async function NoticiaDetalhePage({ params }: Props) {
     .limit(3)
 
   return (
-    <article className="min-h-screen bg-white">
+    <article className="min-h-screen bg-white overflow-x-hidden">
       {/* Cabeçalho */}
-      <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
-            backgroundSize: '32px 32px',
-          }}
-        />
+      <section className="relative bg-[#082F6B] text-white overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.06]">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+              backgroundSize: '24px 24px',
+            }}
+          />
+        </div>
 
-        <div className="relative max-w-3xl mx-auto px-6 py-16 md:py-20">
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full border border-white/10 -translate-y-1/3 translate-x-1/3" />
+
+        <div className="relative max-w-3xl mx-auto px-6 py-16">
           <Link
             href="/noticias"
-            className="inline-flex items-center gap-1.5 text-sm text-blue-200 hover:text-white transition-colors duration-150 mb-6"
+            className="inline-flex items-center gap-2 text-[12px] font-semibold text-white/70 hover:text-white transition-colors uppercase tracking-[0.12em] mb-6"
           >
             <svg
               className="w-4 h-4"
@@ -76,32 +80,35 @@ export default async function NoticiaDetalhePage({ params }: Props) {
             Voltar às notícias
           </Link>
 
-          <span className="inline-block text-xs font-medium tracking-wider uppercase bg-white/15 backdrop-blur-sm text-white border border-white/20 px-3 py-1.5 rounded-full">
+          <span className="inline-block text-[11px] font-bold tracking-[0.12em] uppercase bg-white/15 backdrop-blur-sm text-white border border-white/20 px-3 py-1.5 rounded-full">
             {categoriaNome}
           </span>
 
-          <h1 className="mt-5 text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+          <h1 className="mt-5 heading-lg text-white break-words">
             {noticiaTipada.titulo}
           </h1>
 
-          <div className="mt-6 flex items-center gap-3 text-sm text-blue-200">
+          <div className="mt-6 flex flex-wrap items-center gap-4 text-[13px] text-white/70">
             {noticiaTipada.autor_nome && (
-              <>
-                <span>{noticiaTipada.autor_nome}</span>
-                <span className="text-blue-400">·</span>
-              </>
+              <span className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[11px] font-bold">
+                  {noticiaTipada.autor_nome.charAt(0).toUpperCase()}
+                </div>
+                {noticiaTipada.autor_nome}
+              </span>
             )}
+
+            <span className="text-white/40">•</span>
             <span>{dataFormatada}</span>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Conteúdo */}
       <div className="max-w-3xl mx-auto px-6 py-14">
-        {/* Imagem (quando existir) */}
         {noticiaTipada.imagem_url && (
-          <div className="mb-10 -mt-24 relative z-10">
-            <div className="aspect-video rounded-xl overflow-hidden shadow-xl shadow-blue-900/10 border-4 border-white bg-gray-100">
+          <div className="mb-10 -mt-28 relative z-10">
+            <div className="aspect-video rounded-[18px] overflow-hidden shadow-[0_20px_60px_rgba(8,47,107,0.15)] border-4 border-white bg-gray-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={noticiaTipada.imagem_url}
@@ -112,52 +119,58 @@ export default async function NoticiaDetalhePage({ params }: Props) {
           </div>
         )}
 
-       
-            <div className="prose prose-gray max-w-none w-full overflow-hidden">
-  {noticiaTipada.conteudo.split('\n').map((paragrafo, i) =>
-    paragrafo.trim() ? (
-      <p
-        key={i}
-        className="text-base md:text-lg text-gray-700 leading-relaxed mb-5 break-words whitespace-pre-wrap"
-        style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-      >
-        {paragrafo}
-      </p>
-    ) : null
-  )}
-</div>
+        {/* Conteúdo com quebra de linha */}
+        <div className="w-full max-w-full overflow-hidden">
+          <div className="text-[16px] md:text-[17px] text-[#0F172A] leading-[1.8] whitespace-pre-line break-words">
+            {noticiaTipada.conteudo}
+          </div>
+        </div>
 
+        {/* Separador institucional */}
+        <div className="mt-12 pt-8 border-t border-[#E2E8F0] flex items-center gap-3">
+          <span className="w-8 h-px bg-[#D6A84F]" />
+          <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-[#64748B]">
+            Fim da notícia
+          </span>
+        </div>
       </div>
 
       {/* Notícias relacionadas */}
       {relacionadas && relacionadas.length > 0 && (
-        <div className="bg-gray-50 border-t border-gray-100">
-          <div className="max-w-7xl mx-auto px-6 py-16">
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight mb-8">
-              Mais em {categoriaNome}
-            </h2>
+        <section className="bg-[#F8FAFC] border-t border-[#E2E8F0]">
+          <div className="container py-16">
+            <div className="mb-10">
+              <span className="section-label">
+                <span className="w-8 h-px bg-[#0D6EFD]" />
+                Mais em {categoriaNome}
+              </span>
+              <h2 className="section-title">Notícias relacionadas</h2>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {relacionadas.map((rel) => {
-                const relData = new Date(
-                  rel.data_publicacao
-                ).toLocaleDateString('pt-PT', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })
+                const relData = new Date(rel.data_publicacao).toLocaleDateString(
+                  'pt-PT',
+                  {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  }
+                )
 
                 return (
                   <Link
                     key={rel.id}
                     href={`/noticias/${rel.id}`}
-                    className="group block bg-white rounded-xl border border-gray-100 p-6 transition-all duration-200 hover:border-blue-200 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-0.5"
+                    className="group block bg-white rounded-[18px] border border-[#E2E8F0] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#0D6EFD]/40 hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)]"
                   >
-                    <p className="text-xs text-gray-400">{relData}</p>
-                    <h3 className="mt-2 text-base font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-blue-900 transition-colors duration-150">
+                    <p className="text-[12px] font-medium text-[#64748B] uppercase tracking-[0.05em]">
+                      {relData}
+                    </p>
+                    <h3 className="mt-3 heading-sm text-[#0F172A] leading-snug line-clamp-2 group-hover:text-[#0D6EFD] transition-colors duration-200">
                       {rel.titulo}
                     </h3>
-                    <p className="mt-2 text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                    <p className="mt-3 text-[14px] text-[#64748B] line-clamp-2 leading-relaxed">
                       {rel.conteudo}
                     </p>
                   </Link>
@@ -165,7 +178,7 @@ export default async function NoticiaDetalhePage({ params }: Props) {
               })}
             </div>
           </div>
-        </div>
+        </section>
       )}
     </article>
   )

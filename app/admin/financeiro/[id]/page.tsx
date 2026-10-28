@@ -9,13 +9,19 @@ import { calcularIdade, formatarData } from '@/lib/utils'
 import { calcularResumoQuotas, formatarKz } from '@/lib/quota'
 import { NOMES_MESES_CURTOS } from '@/types'
 import type { Membro, Quota } from '@/types'
+import { garantirQuotasDoAno } from '@/lib/quota-server'
 
 interface Props {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ ano?: string }>
 }
 
-export default async function FichaFinanceiraPage({ params }: Props) {
+export default async function FichaFinanceiraPage({
+  params,
+  searchParams,
+}: Props) {
   const { id } = await params
+  const { ano: anoFiltro } = await searchParams
   const { profile } = await getUserWithProfile()
 
   if (!profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) {
@@ -34,49 +40,53 @@ export default async function FichaFinanceiraPage({ params }: Props) {
 
   const m = membro as Membro
 
-  // Obter todas as quotas do membro
+    // Garantir que existem quotas do ano atual até ao mês atual
+
+   await garantirQuotasDoAno(id) 
+  // Todas as quotas do membro
   const { data: quotas } = await supabase
     .from('quotas')
     .select('*')
     .eq('membro_id', id)
     .order('ano', { ascending: false })
-    .order('mes', { ascending: false })
+    .order('mes', { ascending: true })
 
   const lista = (quotas ?? []) as Quota[]
   const resumo = calcularResumoQuotas(lista)
   const idade = calcularIdade(m.data_nascimento)
 
-  // Agrupar quotas por ano
-  const quotasPorAno = lista.reduce<Record<number, Quota[]>>((acc, q) => {
-    if (!acc[q.ano]) acc[q.ano] = []
-    acc[q.ano].push(q)
-    return acc
-  }, {})
+  // Anos disponíveis
+  const anos = Array.from(new Set(lista.map((q) => q.ano))).sort(
+    (a, b) => b - a
+  )
 
-  const anos = Object.keys(quotasPorAno)
-    .map(Number)
-    .sort((a, b) => b - a)
+  // Ano selecionado (padrão: o mais recente com quotas ou o ano atual)
+  const anoAtual = new Date().getFullYear()
+  const anoSelecionado = anoFiltro
+    ? Number(anoFiltro)
+    : anos.includes(anoAtual)
+    ? anoAtual
+    : anos[0] ?? anoAtual
+
+  // Quotas do ano selecionado (todas as 12 posições)
+  const quotasAno = Array.from({ length: 12 }, (_, i) => {
+    const mes = i + 1
+    return lista.find((q) => q.ano === anoSelecionado && q.mes === mes) ?? null
+  })
+
+  const hoje = new Date()
+  const mesAtual = hoje.getMonth() + 1
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Toolbar (não vai para PDF) */}
+      {/* Toolbar */}
       <div className="flex items-center justify-between mb-6 print:hidden">
         <Link
           href="/admin/financeiro"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors duration-150"
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#64748B] hover:text-[var(--color-primary)] transition-colors uppercase tracking-[0.1em]"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Voltar ao financeiro
         </Link>
@@ -87,81 +97,46 @@ export default async function FichaFinanceiraPage({ params }: Props) {
       {/* DOCUMENTO PDF */}
       <div
         id="ficha-financeira-pdf"
-        className="bg-white rounded-xl border border-gray-100 p-10"
+        className="bg-white rounded-[14px] border border-[#E2E8F0] p-8"
         style={{ fontFamily: 'Georgia, serif' }}
       >
-        {/* Cabeçalho institucional */}
         <CabecalhoIgreja />
 
-        {/* Título */}
-        <div className="text-center mb-8">
-          <h2 className="text-lg font-bold text-blue-950 uppercase tracking-widest">
+        <div className="text-center py-5 border-b-2 border-[#082F6B] mb-6">
+          <h2 className="text-[15px] font-bold text-[#082F6B] uppercase tracking-[0.15em]">
             Ficha Financeira
           </h2>
-          <div className="mt-2 w-24 h-0.5 bg-blue-900 mx-auto" />
         </div>
 
         {/* Foto + Dados */}
-        <div className="flex gap-8 mb-8">
-          {/* Foto */}
+        <div className="flex gap-6 mb-6">
           <div className="flex-shrink-0">
-            <div className="w-40 h-48 bg-gray-100 border-2 border-gray-300 rounded flex items-center justify-center overflow-hidden">
+            <div className="w-32 h-40 bg-gray-100 border-2 border-gray-300 rounded flex items-center justify-center overflow-hidden">
               {m.foto_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={m.foto_url}
-                  alt={m.nome}
-                  className="w-full h-full object-cover"
-                />
+                <img src={m.foto_url} alt={m.nome} className="w-full h-full object-cover" />
               ) : (
                 <div className="text-center px-2">
-                  <svg
-                    className="w-12 h-12 text-gray-300 mx-auto mb-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
+                  <svg className="w-10 h-10 text-gray-300 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-                    Fotografia
-                  </p>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider">Fotografia</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Dados */}
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-2.5">
             <Campo label="Nome completo" valor={m.nome} destaque />
-            <Campo label="Nº do Bilhete de Identidade" valor={m.bi || '—'} mono />
-
+            <Campo label="Nº do BI" valor={m.bi || '—'} mono />
             <div className="grid grid-cols-2 gap-3">
-              <Campo
-                label="Data de Nascimento"
-                valor={formatarData(m.data_nascimento)}
-              />
-              <Campo
-                label="Idade"
-                valor={idade !== null ? `${idade} anos` : '—'}
-              />
+              <Campo label="Data de Nascimento" valor={formatarData(m.data_nascimento)} />
+              <Campo label="Idade" valor={idade !== null ? `${idade} anos` : '—'} />
             </div>
-
             <div className="grid grid-cols-2 gap-3">
-              <Campo label="Cargo Ministerial" valor={m.cargo || '—'} />
-              <Campo
-                label="Membro desde"
-                valor={formatarData(
-                  m.data_inicio_quota || m.created_at
-                )}
-              />
+              <Campo label="Cargo" valor={m.cargo || '—'} />
+              <Campo label="Membro desde" valor={formatarData(m.data_inicio_quota || m.created_at)} />
             </div>
-
             <div className="grid grid-cols-2 gap-3">
               <Campo label="Telefone" valor={m.telefone || '—'} />
               <Campo label="Email" valor={m.email || '—'} />
@@ -169,225 +144,179 @@ export default async function FichaFinanceiraPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Resumo Financeiro */}
-        <div className="border-t border-gray-200 my-6" />
-
-        <div className="mb-6">
-          <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-4">
+        {/* Resumo */}
+        <div className="border-t border-[#E2E8F0] pt-6 mb-6">
+          <h3 className="text-[11px] font-bold text-[#082F6B] uppercase tracking-widest mb-4">
             Resumo Financeiro
           </h3>
 
-          <div className="grid grid-cols-4 gap-3">
-            <ResumoCard
-              titulo="Total de Quotas"
-              valor={String(resumo.total)}
-            />
-            <ResumoCard
-              titulo="Pagas"
-              valor={String(resumo.pagas)}
-              cor="green"
-            />
-            <ResumoCard
-              titulo="Não Pagas"
-              valor={String(resumo.naoPagas)}
-              cor="red"
-            />
-            <ResumoCard
-              titulo="Total Recebido"
-              valor={formatarKz(resumo.valorPago)}
-              cor="blue"
-              pequeno
-            />
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            <ResumoBox titulo="Total de Quotas" valor={String(resumo.total)} />
+            <ResumoBox titulo="Pagas" valor={String(resumo.pagas)} cor="green" />
+            <ResumoBox titulo="Não Pagas" valor={String(resumo.naoPagas)} cor="red" />
+            <ResumoBox titulo="Total Recebido" valor={formatarKz(resumo.valorPago)} cor="blue" pequeno />
           </div>
 
           {/* Barra de progresso */}
-          <div className="mt-5">
-            <div className="flex items-center justify-between text-xs text-gray-600 mb-1.5">
-              <span className="font-semibold">Progresso de Pagamento</span>
-              <span>{resumo.percentagemPago}%</span>
+          <div>
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-1.5">
+              <span className="font-semibold uppercase tracking-wider">Progresso</span>
+              <span className="font-bold tabular-nums">{resumo.percentagemPago}%</span>
             </div>
-            <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
               <div
-                className="h-full bg-green-500 transition-all duration-500"
-                style={{ width: `${resumo.percentagemPago}%` }}
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${resumo.percentagemPago}%`,
+                  background: 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
+                }}
               />
             </div>
           </div>
         </div>
-
-        <div className="border-t border-gray-200 my-6" />
-
-        {/* Histórico por Ano */}
-        <div className="mb-8">
-          <h3 className="text-xs font-bold text-blue-900 uppercase tracking-widest mb-4">
-            Histórico de Quotas
-          </h3>
-
-          {anos.length === 0 ? (
-            <p className="text-sm text-gray-500 italic text-center py-8">
-              Sem quotas registadas.
-            </p>
-          ) : (
-            <div className="space-y-6">
-              {anos.map((ano) => {
-                const quotasAno = quotasPorAno[ano].sort(
-                  (a, b) => a.mes - b.mes
-                )
-                const pagasAno = quotasAno.filter((q) => q.pago).length
-                const totalAno = quotasAno.length
-
-                return (
-                  <div key={ano}>
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-bold text-gray-800">
-                        {ano}
-                      </h4>
-                      <span className="text-xs text-gray-500">
-                        {pagasAno} de {totalAno} pagas
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-12 gap-1.5">
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(
-                        (mes) => {
-                          const quota = quotasAno.find((q) => q.mes === mes)
-
-                          return (
-                            <div key={mes} className="flex flex-col">
-                              <div
-                                className={`aspect-square rounded flex items-center justify-center text-[10px] font-semibold ${
-                                  quota?.pago
-                                    ? 'bg-green-500 text-white'
-                                    : quota
-                                    ? 'bg-red-100 text-red-600 border border-red-200'
-                                    : 'bg-gray-50 text-gray-300 border border-gray-100'
-                                }`}
-                                title={
-                                  quota
-                                    ? `${NOMES_MESES_CURTOS[mes - 1]}: ${
-                                        quota.pago ? 'Pago' : 'Não pago'
-                                      }`
-                                    : 'Não aplicável'
-                                }
-                              >
-                                {NOMES_MESES_CURTOS[mes - 1]}
-                              </div>
-                            </div>
-                          )
-                        }
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Legenda */}
-        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 text-[10px] text-gray-500 uppercase tracking-wider">
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-green-500" />
-            <span>Pago</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-red-100 border border-red-200" />
-            <span>Não pago</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-gray-100 border border-gray-200" />
-            <span>Sem quota</span>
-          </div>
-        </div>
-
-        {/* Rodapé */}
-        <div className="mt-10 pt-5 border-t border-gray-200 text-center">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-            Documento emitido em {formatarData(new Date().toISOString())}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-0.5">
-            Paróquia de São Filipe — Papelão, Uíge · Angola
-          </p>
-        </div>
       </div>
 
-      {/* ÁREA DE GESTÃO (não vai para PDF) */}
-      <div className="mt-8 print:hidden">
-        <div className="mb-4">
-          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-            Gestão de Quotas
-          </h3>
-          <p className="text-xs text-gray-500 mt-1">
-            Marca ou desmarca quotas mensais. Todas as alterações são
-            registadas.
-          </p>
+      {/* ÁREA DE GESTÃO — Fora do PDF */}
+      <div className="mt-6 print:hidden">
+        {/* Navegação por anos */}
+        <div className="bg-white rounded-[14px] border border-[#E2E8F0] p-4 mb-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="text-[13px] font-bold text-[#0F172A]">
+                Gestão de quotas
+              </h3>
+              <p className="text-[11px] text-[#64748B] mt-0.5">
+                Clica em cada mês para marcar/desmarcar como pago
+              </p>
+            </div>
+
+            {/* Seletor de ano */}
+            {anos.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                  Ano:
+                </span>
+                <div className="flex items-center gap-1 flex-wrap">
+                  {anos.map((a) => {
+                    const ativo = a === anoSelecionado
+                    return (
+                      <Link
+                        key={a}
+                        href={`/admin/financeiro/${id}?ano=${a}`}
+                        className="inline-flex items-center justify-center min-h-[32px] px-3 rounded-md text-[12px] font-bold tabular-nums transition-all duration-200"
+                        style={{
+                          backgroundColor: ativo
+                            ? 'var(--color-primary)'
+                            : '#F1F5F9',
+                          color: ativo ? '#FFFFFF' : '#64748B',
+                        }}
+                      >
+                        {a}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {anos.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
-            <p className="text-sm text-gray-500">
-              Nenhuma quota para gerir.
-            </p>
+        {/* Grid de meses do ano selecionado */}
+        <div className="bg-white rounded-[14px] border border-[#E2E8F0] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-[14px] font-bold text-[#0F172A]">
+              {anoSelecionado}
+            </h4>
+            <span className="text-[11px] text-[#64748B]">
+              {quotasAno.filter((q) => q?.pago).length} de{' '}
+              {quotasAno.filter(Boolean).length} pagas
+            </span>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {anos.map((ano) => {
-              const quotasAno = quotasPorAno[ano].sort(
-                (a, b) => a.mes - b.mes
-              )
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {quotasAno.map((quota, i) => {
+              const mes = i + 1
+              const ehMesAtual =
+                anoSelecionado === hoje.getFullYear() && mes === mesAtual
+
+              // Se não existe quota para este mês
+              if (!quota) {
+                return (
+                  <div
+                    key={mes}
+                    className="rounded-[12px] border-2 border-dashed border-[#E2E8F0] p-4 text-center opacity-50"
+                  >
+                    <p className="text-[12px] font-bold text-[#94A3B8]">
+                      {NOMES_MESES_CURTOS[i]}
+                    </p>
+                    <p className="text-[10px] text-[#CBD5E1] mt-1">
+                      Sem quota
+                    </p>
+                  </div>
+                )
+              }
 
               return (
                 <div
-                  key={ano}
-                  className="bg-white rounded-xl border border-gray-100 p-5"
+                  key={mes}
+                  className="rounded-[12px] border p-4 transition-all duration-200"
+                  style={{
+                    backgroundColor: quota.pago ? '#F0FDF4' : '#FFFFFF',
+                    borderColor: quota.pago ? '#BBF7D0' : '#E2E8F0',
+                    borderWidth: ehMesAtual ? '2px' : '1px',
+                    borderStyle: ehMesAtual ? 'solid' : 'solid',
+                    ...(ehMesAtual && !quota.pago
+                      ? { borderColor: 'var(--color-primary)' }
+                      : {}),
+                    ...(ehMesAtual && quota.pago
+                      ? { borderColor: '#16A34A' }
+                      : {}),
+                  }}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-base font-semibold text-gray-800">
-                      {ano}
-                    </h4>
-                    <span className="text-xs text-gray-500">
-                      {quotasAno.filter((q) => q.pago).length} de{' '}
-                      {quotasAno.length} pagas
-                    </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <p
+                      className="text-[14px] font-bold tracking-tight"
+                      style={{
+                        color: quota.pago ? '#166534' : '#0F172A',
+                      }}
+                    >
+                      {NOMES_MESES_CURTOS[i]}
+                    </p>
+
+                    {ehMesAtual && (
+                      <span
+                        className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                        style={{
+                          backgroundColor: 'var(--color-primary)',
+                          color: '#FFFFFF',
+                        }}
+                      >
+                        Atual
+                      </span>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {quotasAno.map((quota) => (
-                      <div
-                        key={quota.id}
-                        className={`rounded-lg border p-3 transition-all duration-200 ${
-                          quota.pago
-                            ? 'bg-green-50/50 border-green-200'
-                            : 'bg-white border-gray-200'
-                        }`}
-                      >
-                        <div className="text-center mb-2">
-                          <p className="text-xs font-semibold text-gray-700">
-                            {NOMES_MESES_CURTOS[quota.mes - 1]}
-                          </p>
-                          <p className="text-[10px] text-gray-400">
-                            {formatarKz(Number(quota.valor))}
-                          </p>
-                          {quota.pago && quota.data_pagamento && (
-                            <p className="text-[10px] text-green-600 mt-0.5">
-                              {formatarData(quota.data_pagamento)}
-                            </p>
-                          )}
-                        </div>
-                        <BotaoQuota
-                          quotaId={quota.id}
-                          pago={quota.pago}
-                          mes={quota.mes}
-                          ano={quota.ano}
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-[11px] text-[#64748B] mb-1">
+                    {formatarKz(Number(quota.valor))}
+                  </p>
+
+                  {quota.pago && quota.data_pagamento && (
+                    <p className="text-[10px] text-[#16A34A] font-semibold mb-2">
+                      Pago em {formatarData(quota.data_pagamento)}
+                    </p>
+                  )}
+
+                  <BotaoQuota
+                    quotaId={quota.id}
+                    pago={quota.pago}
+                    mes={quota.mes}
+                    ano={quota.ano}
+                  />
                 </div>
               )
             })}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
@@ -410,12 +339,12 @@ function Campo({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-0.5">
+      <p className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mb-0.5">
         {label}
       </p>
       <p
-        className={`text-sm text-gray-900 border-b border-gray-200 pb-1 ${
-          destaque ? 'font-bold text-base' : ''
+        className={`text-[13px] text-[#0F172A] border-b border-[#E2E8F0] pb-1 ${
+          destaque ? 'font-bold text-[15px]' : ''
         } ${mono ? 'font-mono tracking-wider' : ''}`}
       >
         {valor}
@@ -424,33 +353,43 @@ function Campo({
   )
 }
 
-function ResumoCard({
+function ResumoBox({
   titulo,
   valor,
-  cor = 'gray',
+  cor = 'neutral',
   pequeno = false,
 }: {
   titulo: string
   valor: string
-  cor?: 'gray' | 'green' | 'red' | 'blue'
+  cor?: 'neutral' | 'green' | 'red' | 'blue'
   pequeno?: boolean
 }) {
   const cores = {
-    gray: 'bg-gray-50 border-gray-200 text-gray-900',
-    green: 'bg-green-50 border-green-200 text-green-800',
-    red: 'bg-red-50 border-red-200 text-red-800',
-    blue: 'bg-blue-50 border-blue-200 text-blue-800',
+    neutral: { bg: '#F8FAFC', border: '#E2E8F0', text: '#0F172A' },
+    green: { bg: '#F0FDF4', border: '#BBF7D0', text: '#166534' },
+    red: { bg: '#FEF2F2', border: '#FECACA', text: '#991B1B' },
+    blue: { bg: '#EFF6FF', border: '#BFDBFE', text: '#1E40AF' },
   }
 
   return (
-    <div className={`rounded-lg border p-3 ${cores[cor]}`}>
-      <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">
+    <div
+      className="rounded-lg border p-3"
+      style={{
+        backgroundColor: cores[cor].bg,
+        borderColor: cores[cor].border,
+      }}
+    >
+      <p
+        className="text-[9px] font-bold uppercase tracking-wider opacity-70"
+        style={{ color: cores[cor].text }}
+      >
         {titulo}
       </p>
       <p
-        className={`font-bold mt-1 ${
-          pequeno ? 'text-sm' : 'text-2xl'
-        } tracking-tight`}
+        className={`font-bold mt-1 tabular-nums leading-none ${
+          pequeno ? 'text-[13px]' : 'text-[18px]'
+        }`}
+        style={{ color: cores[cor].text }}
       >
         {valor}
       </p>

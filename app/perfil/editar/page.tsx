@@ -11,12 +11,14 @@ export default async function EditarPerfilPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
+    <div className="min-h-screen bg-[#F8FAFC]">
+      {/* Barra azul — Voltar ao perfil */}
+      <div style={{ backgroundColor: 'var(--color-primary)' }}>
+        <div className="max-w-2xl mx-auto px-4 py-4">
           <Link
             href="/perfil"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors duration-150 mb-3"
+            className="inline-flex items-center gap-2 text-[13px] font-semibold transition-opacity hover:opacity-80"
+            style={{ color: '#FFFFFF' }}
           >
             <svg
               className="w-4 h-4"
@@ -33,16 +35,23 @@ export default async function EditarPerfilPage() {
             </svg>
             Voltar ao perfil
           </Link>
+        </div>
+      </div>
 
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
-            Editar Perfil
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Atualiza as tuas informações pessoais
+      <div className="max-w-2xl mx-auto py-10 px-4">
+        {/* Cabeçalho da página */}
+        <div className="mb-8">
+          <span className="section-label">
+            <span className="w-8 h-px bg-[var(--color-primary)]" />
+            Perfil
+          </span>
+          <h1 className="heading-md text-[#0F172A]">Editar perfil</h1>
+          <p className="mt-2 text-[14px] text-[#64748B]">
+            Atualiza as tuas informações pessoais.
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 p-8">
+        <div className="bg-white rounded-[18px] border border-[#E2E8F0] p-8 shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
           <PerfilForm profile={profile} />
         </div>
       </div>

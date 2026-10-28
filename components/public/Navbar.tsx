@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { IGREJA } from '@/lib/constants'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 
 interface Props {
   logado: boolean
@@ -22,13 +21,15 @@ export default function Navbar({ logado }: Props) {
   const pathname = usePathname()
   const [menuAberto, setMenuAberto] = useState(false)
   const [secaoAtiva, setSecaoAtiva] = useState('inicio')
+  const [scrolled, setScrolled] = useState(false)
   const naHome = pathname === '/'
 
-  // Deteta a secção ativa ao fazer scroll (só na home)
   useEffect(() => {
     if (!naHome) return
 
     const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+
       const scrollY = window.scrollY + 120
 
       for (const link of LINKS) {
@@ -47,99 +48,116 @@ export default function Navbar({ logado }: Props) {
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
-
     return () => window.removeEventListener('scroll', handleScroll)
   }, [naHome])
 
-  // Clicar num link de secção
   function handleClickSecao(
     e: React.MouseEvent<HTMLAnchorElement>,
     id: string
   ) {
-    // Se NÃO estamos na home → deixar o browser ir para /#id
     if (!naHome) return
-
-    // Se estamos na home → scroll suave sem mudar URL
     e.preventDefault()
     const el = document.getElementById(id)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     setMenuAberto(false)
   }
 
-  const linkClass = (id: string) => {
-    const ativo = naHome && secaoAtiva === id
-    return `text-sm font-medium transition-colors duration-150 ${
-      ativo ? 'text-blue-900' : 'text-gray-600 hover:text-blue-900'
-    }`
-  }
-
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-      <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'border-b border-white/10 shadow-[0_4px_20px_rgba(13,110,253,0.25)]'
+          : 'border-b border-transparent'
+      }`}
+      style={{ backgroundColor: 'var(--color-primary)' }}
+    >
+      <nav className="container h-[72px] flex items-center justify-between">
         {/* Logo + Nome */}
-       
-       {/* Logo + Nome */}
-<Link href="/" className="flex items-center gap-3 min-w-0">
-  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-white">
-    <Image
-      src="/logo.png"
-      alt="Logotipo"
-      width={40}
-      height={40}
-      className="w-full h-full object-contain"
-    />
-  </div>
-  <div className="hidden sm:block min-w-0">
-    <p className="text-sm font-semibold text-gray-900 leading-tight truncate">
-      {IGREJA.nome}
-    </p>
-    <p className="text-[11px] text-gray-500 leading-tight truncate">
-      {IGREJA.sigla} · Uíge
-    </p>
-  </div>
-</Link>
+        <Link href="/" className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="Logotipo IEUCAA"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+              priority
+            />
+          </div>
+          <div className="hidden sm:block min-w-0">
+            <p
+              className="text-[14px] font-bold leading-tight tracking-tight truncate"
+              style={{ color: '#FFFFFF' }}
+            >
+              Direção da Juventude
+            </p>
+            <p
+              className="text-[11px] leading-tight truncate"
+              style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+            >
+              IEUCAA · Paróquia de São Filipe
+            </p>
+          </div>
+        </Link>
 
         {/* Links — desktop */}
-        <div className="hidden md:flex items-center gap-8">
-          {LINKS.map((l) =>
-            naHome ? (
-              // Na home → âncora normal (scroll suave)
+        <div className="hidden lg:flex items-center gap-8">
+          {LINKS.map((l) => {
+            const ativo = naHome && secaoAtiva === l.id
+            const conteudo = (
+              <>
+                <span style={{ color: '#FFFFFF' }}>{l.label}</span>
+                {ativo && (
+                  <span
+                    className="absolute -bottom-1.5 left-0 right-0 h-0.5"
+                    style={{ backgroundColor: '#D6A84F' }}
+                  />
+                )}
+              </>
+            )
+
+            return naHome ? (
               <a
                 key={l.href}
                 href={l.href}
                 onClick={(e) => handleClickSecao(e, l.id)}
-                className={linkClass(l.id)}
+                className="relative text-[14px] font-medium transition-opacity duration-200 hover:opacity-80"
               >
-                {l.label}
+                {conteudo}
               </a>
             ) : (
-              // Fora da home → link normal com href="/#id"
               <Link
                 key={l.href}
                 href={`/${l.href}`}
-                className="text-sm font-medium text-gray-600 hover:text-blue-900 transition-colors duration-150"
+                className="relative text-[14px] font-medium transition-opacity duration-200 hover:opacity-80"
               >
-                {l.label}
+                <span style={{ color: '#FFFFFF' }}>{l.label}</span>
               </Link>
             )
-          )}
+          })}
         </div>
 
-        {/* Botão direito — desktop */}
-        <div className="hidden md:flex items-center gap-3">
+        {/* Botão Entrar — desktop (azul escuro com texto branco) */}
+        <div className="hidden lg:flex items-center gap-3">
           {logado ? (
             <Link
               href="/admin/dashboard"
-              className="bg-blue-900 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm shadow-blue-900/20 hover:shadow-md"
+              className="inline-flex items-center justify-center min-h-[40px] px-5 rounded-[10px] text-[13px] font-semibold transition-all duration-200 hover:opacity-90"
+              style={{
+                backgroundColor: 'var(--color-primary-dark)',
+                color: '#FFFFFF',
+              }}
             >
               Painel
             </Link>
           ) : (
             <Link
               href="/auth/login"
-              className="bg-blue-900 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200 shadow-sm shadow-blue-900/20 hover:shadow-md"
+              className="inline-flex items-center justify-center min-h-[40px] px-5 rounded-[10px] text-[13px] font-semibold transition-all duration-200 hover:opacity-90"
+              style={{
+                backgroundColor: 'var(--color-primary-dark)',
+                color: '#FFFFFF',
+              }}
             >
               Entrar
             </Link>
@@ -149,36 +167,17 @@ export default function Navbar({ logado }: Props) {
         {/* Botão menu mobile */}
         <button
           onClick={() => setMenuAberto(!menuAberto)}
-          className="md:hidden p-2 text-gray-600 hover:text-blue-900 transition-colors"
-          aria-label="Menu"
+          className="lg:hidden p-2 transition-opacity hover:opacity-80"
+          style={{ color: '#FFFFFF' }}
+          aria-label="Abrir menu"
         >
           {menuAberto ? (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           )}
         </button>
@@ -186,15 +185,19 @@ export default function Navbar({ logado }: Props) {
 
       {/* Menu mobile */}
       {menuAberto && (
-        <div className="md:hidden border-t border-gray-100 bg-white">
-          <div className="px-6 py-4 flex flex-col gap-4">
+        <div
+          className="lg:hidden border-t border-white/10"
+          style={{ backgroundColor: 'var(--color-primary)' }}
+        >
+          <div className="container py-5 flex flex-col gap-1">
             {LINKS.map((l) =>
               naHome ? (
                 <a
                   key={l.href}
                   href={l.href}
                   onClick={(e) => handleClickSecao(e, l.id)}
-                  className={linkClass(l.id)}
+                  className="text-[14px] font-medium transition-opacity duration-200 hover:opacity-80 py-3 px-3 rounded-md"
+                  style={{ color: '#FFFFFF' }}
                 >
                   {l.label}
                 </a>
@@ -203,19 +206,24 @@ export default function Navbar({ logado }: Props) {
                   key={l.href}
                   href={`/${l.href}`}
                   onClick={() => setMenuAberto(false)}
-                  className="text-sm font-medium text-gray-600 hover:text-blue-900 transition-colors duration-150"
+                  className="text-[14px] font-medium transition-opacity duration-200 hover:opacity-80 py-3 px-3 rounded-md"
+                  style={{ color: '#FFFFFF' }}
                 >
                   {l.label}
                 </Link>
               )
             )}
 
-            <div className="pt-3 border-t border-gray-100">
+            <div className="pt-4 mt-2 border-t border-white/10">
               {logado ? (
                 <Link
                   href="/admin/dashboard"
                   onClick={() => setMenuAberto(false)}
-                  className="block w-full text-center bg-blue-900 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-200"
+                  className="w-full inline-flex items-center justify-center min-h-[44px] px-5 rounded-[10px] text-[14px] font-semibold transition-all duration-200 hover:opacity-90"
+                  style={{
+                    backgroundColor: 'var(--color-primary-dark)',
+                    color: '#FFFFFF',
+                  }}
                 >
                   Painel
                 </Link>
@@ -223,7 +231,11 @@ export default function Navbar({ logado }: Props) {
                 <Link
                   href="/auth/login"
                   onClick={() => setMenuAberto(false)}
-                  className="block w-full text-center bg-blue-900 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors duration-200"
+                  className="w-full inline-flex items-center justify-center min-h-[44px] px-5 rounded-[10px] text-[14px] font-semibold transition-all duration-200 hover:opacity-90"
+                  style={{
+                    backgroundColor: 'var(--color-primary-dark)',
+                    color: '#FFFFFF',
+                  }}
                 >
                   Entrar
                 </Link>

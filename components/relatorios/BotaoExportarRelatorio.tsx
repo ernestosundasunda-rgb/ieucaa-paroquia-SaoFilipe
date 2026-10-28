@@ -14,7 +14,7 @@ export default function BotaoExportarRelatorio({ totalMembros }: Props) {
 
   async function handleExportar() {
     if (totalMembros === 0) {
-      setErro('Não há membros para exportar.')
+      setErro('Não há registos para exportar.')
       return
     }
 
@@ -27,7 +27,7 @@ export default function BotaoExportarRelatorio({ totalMembros }: Props) {
       await exportarElementoParaPDF({
         elementoId: 'relatorio-para-pdf',
         nomeFicheiro,
-        orientacao: 'landscape', // ⚠️ Paisagem porque tem muitas colunas
+        orientacao: 'landscape',
         formato: 'a4',
         qualidade: 0.95,
       })
@@ -44,7 +44,11 @@ export default function BotaoExportarRelatorio({ totalMembros }: Props) {
       <button
         onClick={handleExportar}
         disabled={loading || totalMembros === 0}
-        className="inline-flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-all duration-200 shadow-sm shadow-blue-900/20 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-[10px] text-[13px] font-semibold transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          backgroundColor: 'var(--color-primary)',
+          color: '#FFFFFF',
+        }}
       >
         {loading ? (
           <>
@@ -67,7 +71,7 @@ export default function BotaoExportarRelatorio({ totalMembros }: Props) {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            A gerar PDF...
+            A gerar...
           </>
         ) : (
           <>
@@ -90,7 +94,9 @@ export default function BotaoExportarRelatorio({ totalMembros }: Props) {
       </button>
 
       {erro && (
-        <p className="text-xs text-red-600 max-w-[240px] text-right">{erro}</p>
+        <p className="text-[11px] text-red-600 max-w-[240px] text-right">
+          {erro}
+        </p>
       )}
     </div>
   )

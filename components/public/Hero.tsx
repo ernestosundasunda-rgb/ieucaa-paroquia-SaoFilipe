@@ -1,80 +1,155 @@
 import Link from 'next/link'
-import { IGREJA } from '@/lib/constants'
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-blue-900">
-      {/* Gradiente de fundo */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950" />
+    <section className="relative overflow-hidden bg-white">
+      {/* Grid azul de fundo */}
+      <div className="absolute inset-0 blue-grid opacity-60" />
+      <div className="absolute inset-0 blue-radial" />
 
-      {/* Padrão subtil */}
-      <div
-        className="absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
-          backgroundSize: '32px 32px',
-        }}
-      />
+      {/* Detalhe geométrico superior direito */}
+      <div className="hidden lg:block absolute top-0 right-0 w-[420px] h-[420px] pointer-events-none">
+        <div className="absolute top-12 right-12 w-full h-full border border-[#0D6EFD]/10 rounded-full" />
+        <div className="absolute top-24 right-24 w-3/4 h-3/4 border border-[#0D6EFD]/10 rounded-full" />
+        <div className="absolute top-1/2 right-1/4 w-px h-24 bg-[#0D6EFD]/20 rotate-45" />
+      </div>
 
-      {/* Conteúdo */}
-      <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32">
-        <div className="max-w-3xl">
-          {/* Etiqueta */}
-          <span className="inline-block text-xs font-medium tracking-wider uppercase text-blue-200 bg-blue-800/50 border border-blue-700/50 px-3 py-1.5 rounded-full">
-            {IGREJA.sigla} · Uíge, Angola
-          </span>
+      <div className="relative container py-20 lg:py-28">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Coluna esquerda — conteúdo */}
+          <div className="lg:col-span-7">
+            <span className="section-label">
+              <span className="w-8 h-px bg-[#0D6EFD]" />
+              Direção da Juventude
+            </span>
 
-          {/* Título principal */}
-          <h1 className="mt-6 text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.1]">
-            {IGREJA.nome}
-          </h1>
+            <h1 className="heading-xl text-[#0F172A]">
+              Uma juventude que
+              <br />
+              participa, serve e{' '}
+              <span className="text-[#0D6EFD]">transforma.</span>
+            </h1>
 
-          {/* Subtítulo */}
-          <p className="mt-4 text-lg md:text-xl text-blue-100 leading-relaxed">
-            {IGREJA.nomeCompleto}
-          </p>
-
-          {/* Slogan (placeholder) */}
-          <div className="mt-8 pt-8 border-t border-blue-700/50">
-            <p className="text-base md:text-lg text-blue-200 italic">
-              &ldquo;{IGREJA.slogan}&rdquo;
+            <p className="mt-6 max-w-xl text-[16px] text-[#64748B] leading-relaxed">
+              Somos a Direção da Juventude da Igreja Evangélica Unida 
+              Comunhão Anglicana em Angola, Paróquia de São Filipe. Criamos
+              espaços para comunhão, crescimento, liderança e participação
+              ativa da juventude.
             </p>
+
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Link href="#sobre" className="btn btn-primary">
+                Conhecer a Juventude
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </Link>
+
+              <Link href="#cultos" className="btn btn-secondary">
+                Ver Programação
+              </Link>
+            </div>
           </div>
 
-          {/* Botões */}
-          <div className="mt-10 flex flex-wrap items-center gap-3">
-            <Link
-              href="/sobre"
-              className="inline-flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-900 text-sm font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-lg shadow-blue-950/30 hover:shadow-xl hover:shadow-blue-950/40"
-            >
-              Conhecer a Igreja
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </Link>
+          {/* Coluna direita — card "Próximo Evento" */}
+          <div className="lg:col-span-5">
+            <div className="relative">
+              {/* Linha decorativa */}
+              <div className="absolute -left-6 top-8 w-16 h-px bg-[#D6A84F]/40 hidden lg:block" />
 
-            <Link
-              href="/noticias"
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-6 py-3 rounded-lg border border-blue-700/60 hover:bg-blue-800/40 transition-all duration-200"
-            >
-              Ver Notícias
-            </Link>
+              <div className="card-static p-7 max-w-md ml-auto">
+                <span className="text-[11px] font-bold text-[#0D6EFD] uppercase tracking-[0.12em]">
+                  Próximo Evento
+                </span>
+
+                <h3 className="mt-3 heading-md text-[#0F172A]">
+                  Culto da Juventude
+                </h3>
+
+                <div className="mt-5 space-y-3">
+                  <div className="flex items-center gap-3 text-[14px] text-[#0F172A]">
+                    <div className="w-9 h-9 rounded-md bg-[#F4F8FD] flex items-center justify-center flex-shrink-0">
+                      <svg
+                        className="w-4 h-4 text-[#0D6EFD]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.8}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-medium">Sabado · 16:00</span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-[14px] text-[#0F172A]">
+                    <div className="w-9 h-9 rounded-md bg-[#F4F8FD] flex items-center justify-center flex-shrink-0">
+                      <svg
+                        className="w-4 h-4 text-[#0D6EFD]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.8}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-medium">Paróquia de São Filipe</span>
+                  </div>
+                </div>
+
+                <Link
+                  href="#cultos"
+                  className="btn btn-ghost mt-6 text-[13px]"
+                >
+                  Ver detalhes
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Curva de transição no fundo */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white/0 to-transparent" />
+      {/* Linha inferior decorativa */}
+      <div className="relative container">
+        <div className="h-px bg-gradient-to-r from-transparent via-[#E2E8F0] to-transparent" />
+      </div>
     </section>
   )
 }

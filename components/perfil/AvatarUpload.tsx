@@ -22,7 +22,6 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
 
     setErro('')
 
-    // Validações
     if (!file.type.startsWith('image/')) {
       setErro('O ficheiro deve ser uma imagem.')
       return
@@ -33,20 +32,16 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
       return
     }
 
-    // Preview local
     const reader = new FileReader()
     reader.onload = () => setPreview(reader.result as string)
     reader.readAsDataURL(file)
 
-    // Upload
     setLoading(true)
     const supabase = createClient()
 
-    // Nome único para o ficheiro
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
     const path = `${userId}/avatar.${ext}`
 
-    // Remover ficheiros antigos
     await supabase.storage.from('avatares').remove([
       `${userId}/avatar.jpg`,
       `${userId}/avatar.png`,
@@ -54,7 +49,6 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
       `${userId}/avatar.webp`,
     ])
 
-    // Upload novo
     const { error: uploadError } = await supabase.storage
       .from('avatares')
       .upload(path, file, { upsert: true, cacheControl: '3600' })
@@ -65,14 +59,12 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
       return
     }
 
-    // URL público com timestamp para evitar cache
     const { data: urlData } = supabase.storage
       .from('avatares')
       .getPublicUrl(path)
 
     const novaUrl = `${urlData.publicUrl}?v=${Date.now()}`
 
-    // Atualizar perfil
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ foto_url: novaUrl })
@@ -95,7 +87,6 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
 
     const supabase = createClient()
 
-    // Remover do storage
     const { error: storageError } = await supabase.storage
       .from('avatares')
       .remove([
@@ -111,7 +102,6 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
       return
     }
 
-    // Atualizar perfil (foto_url = null)
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ foto_url: null })
@@ -131,7 +121,13 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
   return (
     <div className="flex flex-col items-center">
       <div className="relative group">
-        <div className="w-28 h-28 rounded-full bg-blue-100 border-4 border-white shadow-md overflow-hidden flex items-center justify-center">
+        <div
+          className="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center border-4 border-white"
+          style={{
+            backgroundColor: 'var(--color-primary-soft)',
+            boxShadow: '0 8px 24px rgba(13, 110, 253, 0.15)',
+          }}
+        >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -140,20 +136,25 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-3xl font-semibold text-blue-600">
+            <span
+              className="text-3xl font-bold tracking-tight"
+              style={{ color: 'var(--color-primary)' }}
+            >
               {nome.charAt(0).toUpperCase()}
             </span>
           )}
         </div>
 
-        {/* Overlay hover */}
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={loading || aRemover}
           className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center disabled:cursor-not-allowed"
         >
-          <span className="text-white text-xs font-medium">
+          <span
+            className="text-xs font-semibold"
+            style={{ color: '#FFFFFF' }}
+          >
             {loading ? 'A enviar...' : 'Alterar foto'}
           </span>
         </button>
@@ -172,7 +173,8 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={loading || aRemover}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-150 disabled:opacity-60"
+          className="text-[13px] font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
+          style={{ color: 'var(--color-primary)' }}
         >
           {loading ? 'A enviar...' : 'Alterar foto'}
         </button>
@@ -184,7 +186,7 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
               type="button"
               onClick={handleRemover}
               disabled={loading || aRemover}
-              className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors duration-150 disabled:opacity-60"
+              className="text-[13px] font-medium text-red-600 hover:text-red-700 transition-colors duration-150 disabled:opacity-60"
             >
               {aRemover ? 'A remover...' : 'Remover foto'}
             </button>
@@ -193,12 +195,14 @@ export default function AvatarUpload({ userId, fotoAtual, nome }: Props) {
       </div>
 
       {erro && (
-        <p className="mt-2 text-xs text-red-600 text-center max-w-[240px]">
+        <p className="mt-2 text-[12px] text-red-600 text-center max-w-[240px]">
           {erro}
         </p>
       )}
 
-      <p className="mt-2 text-xs text-gray-400">PNG ou JPG, máx. 2MB</p>
+      <p className="mt-2 text-[11px] text-[#94A3B8]">
+        PNG ou JPG, máx. 2MB
+      </p>
     </div>
   )
 }

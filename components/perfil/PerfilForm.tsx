@@ -45,10 +45,8 @@ export default function PerfilForm({ profile }: Props) {
     }
 
     setLoading(true)
-
     const supabase = createClient()
 
-    // ⚠️ NÃO incluir "role" nem "email" — são geridos pelo sistema
     const dados = {
       nome: form.nome.trim(),
       telefone: form.telefone.trim() || null,
@@ -71,19 +69,13 @@ export default function PerfilForm({ profile }: Props) {
 
     setSucesso('Perfil atualizado com sucesso!')
     setLoading(false)
-
     router.refresh()
   }
-
-  const inputClass =
-    'w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 disabled:bg-gray-50 disabled:text-gray-400'
-
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1.5'
 
   return (
     <div className="space-y-8">
       {/* Avatar */}
-      <div className="flex justify-center pb-6 border-b border-gray-100">
+      <div className="flex justify-center pb-6 border-b border-[#E2E8F0]">
         <AvatarUpload
           userId={profile.id}
           fotoAtual={profile.foto_url}
@@ -94,12 +86,12 @@ export default function PerfilForm({ profile }: Props) {
       {/* Formulário */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {erro && (
-          <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-sm text-red-700">
+          <div className="px-4 py-3 rounded-[10px] bg-red-50 border border-red-100 text-[13px] text-red-700">
             {erro}
           </div>
         )}
         {sucesso && (
-          <div className="px-4 py-3 rounded-lg bg-blue-50 border border-blue-100 text-sm text-blue-700">
+          <div className="px-4 py-3 rounded-[10px] bg-[#EAF3FF] border border-[var(--color-primary)]/20 text-[13px] text-[var(--color-primary-dark)]">
             {sucesso}
           </div>
         )}
@@ -107,7 +99,9 @@ export default function PerfilForm({ profile }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Nome */}
           <div className="md:col-span-2">
-            <label className={labelClass}>Nome completo *</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Nome completo *
+            </label>
             <input
               type="text"
               name="nome"
@@ -115,106 +109,125 @@ export default function PerfilForm({ profile }: Props) {
               value={form.nome}
               onChange={handleChange}
               placeholder="O teu nome"
-              className={inputClass}
+              className="input"
             />
           </div>
 
           {/* Email (não editável) */}
           <div className="md:col-span-2">
-            <label className={labelClass}>Email</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Email
+            </label>
             <input
               type="email"
               value={profile.email}
               disabled
-              className={inputClass}
+              className="input"
             />
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1.5 text-[11px] text-[#94A3B8]">
               O email não pode ser alterado nesta página.
             </p>
           </div>
 
           {/* Role (não editável) */}
           <div className="md:col-span-2">
-            <label className={labelClass}>Nível de Acesso</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Nível de acesso
+            </label>
             <input
               type="text"
               value={profile.role}
               disabled
-              className={`${inputClass} capitalize`}
+              className="input capitalize"
             />
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1.5 text-[11px] text-[#94A3B8]">
               O nível de acesso só pode ser alterado por um administrador.
             </p>
           </div>
 
           {/* Telefone */}
           <div>
-            <label className={labelClass}>Telefone</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Telefone
+            </label>
             <input
               type="text"
               name="telefone"
               value={form.telefone}
               onChange={handleChange}
               placeholder="+244 900 000 000"
-              className={inputClass}
+              className="input"
             />
           </div>
 
           {/* Cargo */}
           <div>
-            <label className={labelClass}>Cargo</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Cargo
+            </label>
             <input
               type="text"
               name="cargo"
               value={form.cargo}
               onChange={handleChange}
               placeholder="Ex: Diácono, Presbítero, Membro"
-              className={inputClass}
+              className="input"
             />
           </div>
 
           {/* Endereço */}
           <div className="md:col-span-2">
-            <label className={labelClass}>Endereço</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Endereço
+            </label>
             <input
               type="text"
               name="endereco"
               value={form.endereco}
               onChange={handleChange}
               placeholder="Rua, número, bairro"
-              className={inputClass}
+              className="input"
             />
           </div>
 
           {/* Data Nascimento */}
           <div>
-            <label className={labelClass}>Data de Nascimento</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Data de nascimento
+            </label>
             <input
               type="date"
               name="data_nascimento"
               value={form.data_nascimento}
               onChange={handleChange}
-              className={inputClass}
+              className="input"
             />
           </div>
 
           {/* Data Batismo */}
           <div>
-            <label className={labelClass}>Data de Batismo</label>
+            <label className="block text-[13px] font-semibold text-[#0F172A] mb-1.5">
+              Data de batismo
+            </label>
             <input
               type="date"
               name="data_batismo"
               value={form.data_batismo}
               onChange={handleChange}
-              className={inputClass}
+              className="input"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+        {/* Botões — Cancelar secundário + Guardar azul escuro */}
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E2E8F0]">
           <Link
             href="/perfil"
-            className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-150"
+            className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-[10px] text-[14px] font-semibold border transition-all duration-200 hover:bg-[#F8FAFC]"
+            style={{
+              borderColor: 'var(--color-border-strong)',
+              color: 'var(--color-text)',
+            }}
           >
             Cancelar
           </Link>
@@ -222,9 +235,13 @@ export default function PerfilForm({ profile }: Props) {
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm shadow-blue-600/20 hover:shadow-md hover:shadow-blue-600/30"
+            className="inline-flex items-center justify-center min-h-[44px] px-6 rounded-[10px] text-[14px] font-semibold transition-all duration-200 hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: 'var(--color-primary-dark)',
+              color: '#FFFFFF',
+            }}
           >
-            {loading ? 'A guardar...' : 'Guardar Alterações'}
+            {loading ? 'A guardar...' : 'Guardar alterações'}
           </button>
         </div>
       </form>

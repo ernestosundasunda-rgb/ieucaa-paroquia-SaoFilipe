@@ -4,7 +4,7 @@ import type { Membro } from '@/types'
 
 interface Props {
   membros: Membro[]
-  filtrosAtivos: {
+  filtrosAtivos?: {
     nome?: string
     bi?: string
     cargo?: string
@@ -12,149 +12,98 @@ interface Props {
   }
 }
 
-export default function TabelaRelatorio({ membros, filtrosAtivos }: Props) {
+export default function TabelaRelatorio({
+  membros,
+  filtrosAtivos = {},
+}: Props) {
   const total = membros.length
   const temFiltros = Object.values(filtrosAtivos).some(Boolean)
 
-  // Texto dos filtros aplicados
-  const filtrosTexto = [
-    filtrosAtivos.nome && `Nome: "${filtrosAtivos.nome}"`,
-    filtrosAtivos.bi && `BI: "${filtrosAtivos.bi}"`,
-    filtrosAtivos.cargo && `Cargo: "${filtrosAtivos.cargo}"`,
-    filtrosAtivos.tipo_sanguineo &&
-      `Tipo Sanguíneo: "${filtrosAtivos.tipo_sanguineo}"`,
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  // Contagem por género (usando o campo nome para inferir? Não temos campo género)
+  // Vou usar dados reais se existirem, senão deixar 0
+  // Se quiseres contagem por género, precisa de um campo "genero" na tabela membros
 
   return (
     <div
       id="relatorio-para-pdf"
-      className="bg-white rounded-xl border border-gray-100 p-10"
-      style={{ fontFamily: 'Georgia, serif' }}
+      className="bg-white rounded-[14px] border border-[#E2E8F0] overflow-hidden"
     >
-      {/* Cabeçalho institucional */}
-      <CabecalhoIgreja />
+      <div className="p-8 pb-0">
+        <CabecalhoIgreja />
 
-      {/* Título */}
-      <div className="text-center mb-8">
-        <h2 className="text-lg font-bold text-blue-950 uppercase tracking-widest">
-          Relatório de Membros
-        </h2>
-        <div className="mt-2 w-24 h-0.5 bg-blue-900 mx-auto" />
+        <div className="text-center py-5 border-b-2 border-[#082F6B] mb-6">
+          <h2 className="text-[15px] font-bold text-[#082F6B] uppercase tracking-[0.15em]">
+            Relatório de Membros
+          </h2>
 
-        {temFiltros && (
-          <p className="mt-3 text-xs text-gray-600 italic">
-            Filtros aplicados — {filtrosTexto}
-          </p>
+          {temFiltros && (
+            <p className="mt-2 text-[11px] text-[#64748B] italic">
+              Filtros aplicados
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="px-8 pb-8">
+        {membros.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-[13px] text-[#64748B]">
+              Sem registos para mostrar.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px] border-collapse">
+              <thead>
+                <tr style={{ backgroundColor: 'var(--color-primary-dark)' }}>
+                  <th className="text-left px-3 py-2.5 font-semibold uppercase tracking-wider text-[10px] border border-[#083D8F]" style={{ color: '#FFFFFF' }}>#</th>
+                  <th className="text-left px-3 py-2.5 font-semibold uppercase tracking-wider text-[10px] border border-[#083D8F]" style={{ color: '#FFFFFF' }}>Nome completo</th>
+                  <th className="text-left px-3 py-2.5 font-semibold uppercase tracking-wider text-[10px] border border-[#083D8F]" style={{ color: '#FFFFFF' }}>Nº BI</th>
+                  <th className="text-left px-3 py-2.5 font-semibold uppercase tracking-wider text-[10px] border border-[#083D8F]" style={{ color: '#FFFFFF' }}>Telefone</th>
+                  <th className="text-left px-3 py-2.5 font-semibold uppercase tracking-wider text-[10px] border border-[#083D8F]" style={{ color: '#FFFFFF' }}>Cargo</th>
+                  <th className="text-center px-3 py-2.5 font-semibold uppercase tracking-wider text-[10px] border border-[#083D8F]" style={{ color: '#FFFFFF' }}>T. Sang.</th>
+                  <th className="text-left px-3 py-2.5 font-semibold uppercase tracking-wider text-[10px] border border-[#083D8F]" style={{ color: '#FFFFFF' }}>Batismo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {membros.map((m, i) => (
+                  <tr key={m.id} style={{ backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#F8FAFC' }}>
+                    <td className="px-3 py-2 border border-[#E2E8F0] text-center text-[#64748B] tabular-nums">{i + 1}</td>
+                    <td className="px-3 py-2 border border-[#E2E8F0] font-semibold text-[#0F172A]">{m.nome}</td>
+                    <td className="px-3 py-2 border border-[#E2E8F0] text-[#0F172A] font-mono text-[11px] tracking-wider">{m.bi || '—'}</td>
+                    <td className="px-3 py-2 border border-[#E2E8F0] text-[#0F172A]">{m.telefone || '—'}</td>
+                    <td className="px-3 py-2 border border-[#E2E8F0] text-[#0F172A]">{m.cargo || '—'}</td>
+                    <td className="px-3 py-2 border border-[#E2E8F0] text-[#0F172A] text-center tabular-nums">
+                      {m.tipo_sanguineo && m.tipo_sanguineo !== 'desconhecido' ? m.tipo_sanguineo : '—'}
+                    </td>
+                    <td className="px-3 py-2 border border-[#E2E8F0] text-[#0F172A] tabular-nums">
+                      {formatarData(m.data_batismo)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+
+              {/* Rodapé com totais */}
+              <tfoot>
+                <tr style={{ backgroundColor: 'var(--color-primary-soft)' }}>
+                  <td
+                    colSpan={7}
+                    className="px-3 py-3 border border-[#E2E8F0]"
+                  >
+                    <div className="flex flex-wrap items-center gap-6 text-[11px]">
+                      <span className="font-bold text-[#082F6B] uppercase tracking-wider">
+                        Total: {total} {total === 1 ? 'cadastrado' : 'cadastrados'}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         )}
-      </div>
 
-      {/* Resumo */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-          <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">
-            Total de Membros
-          </p>
-          <p className="text-2xl font-bold text-blue-950 mt-1">{total}</p>
-        </div>
-
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-          <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">
-            Com BI Registado
-          </p>
-          <p className="text-2xl font-bold text-blue-950 mt-1">
-            {membros.filter((m) => m.bi).length}
-          </p>
-        </div>
-
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-          <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">
-            Com Foto
-          </p>
-          <p className="text-2xl font-bold text-blue-950 mt-1">
-            {membros.filter((m) => m.foto_url).length}
-          </p>
-        </div>
-      </div>
-
-      {/* Tabela */}
-      {membros.length === 0 ? (
-        <div className="py-12 text-center">
-          <p className="text-sm text-gray-500">
-            Nenhum membro corresponde aos filtros aplicados.
-          </p>
-        </div>
-      ) : (
-        <table className="w-full border-collapse text-xs">
-          <thead>
-            <tr className="bg-blue-900 text-white">
-              <th className="text-left px-2 py-2 font-semibold uppercase tracking-wider border border-blue-800 w-8">
-                #
-              </th>
-              <th className="text-left px-2 py-2 font-semibold uppercase tracking-wider border border-blue-800">
-                Nome Completo
-              </th>
-              <th className="text-left px-2 py-2 font-semibold uppercase tracking-wider border border-blue-800">
-                Nº BI
-              </th>
-              <th className="text-left px-2 py-2 font-semibold uppercase tracking-wider border border-blue-800">
-                Telefone
-              </th>
-              <th className="text-left px-2 py-2 font-semibold uppercase tracking-wider border border-blue-800">
-                Cargo
-              </th>
-              <th className="text-left px-2 py-2 font-semibold uppercase tracking-wider border border-blue-800">
-                Tipo Sang.
-              </th>
-              <th className="text-left px-2 py-2 font-semibold uppercase tracking-wider border border-blue-800">
-                Batismo
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {membros.map((m, i) => (
-              <tr
-                key={m.id}
-                className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-              >
-                <td className="px-2 py-2 border border-gray-200 text-center text-gray-500">
-                  {i + 1}
-                </td>
-                <td className="px-2 py-2 border border-gray-200 font-medium text-gray-900">
-                  {m.nome}
-                </td>
-                <td className="px-2 py-2 border border-gray-200 text-gray-700 font-mono text-[10px]">
-                  {m.bi || '—'}
-                </td>
-                <td className="px-2 py-2 border border-gray-200 text-gray-700">
-                  {m.telefone || '—'}
-                </td>
-                <td className="px-2 py-2 border border-gray-200 text-gray-700">
-                  {m.cargo || '—'}
-                </td>
-                <td className="px-2 py-2 border border-gray-200 text-gray-700 text-center">
-                  {m.tipo_sanguineo && m.tipo_sanguineo !== 'desconhecido'
-                    ? m.tipo_sanguineo
-                    : '—'}
-                </td>
-                <td className="px-2 py-2 border border-gray-200 text-gray-700">
-                  {formatarData(m.data_batismo)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {/* Rodapé */}
-      <div className="mt-10 pt-5 border-t border-gray-200">
-        <div className="flex items-center justify-between text-[10px] text-gray-500 uppercase tracking-wider">
-          <p>
-            Documento emitido em{' '}
-            {formatarData(new Date().toISOString())}
-          </p>
+        <div className="mt-8 pt-5 border-t border-[#E2E8F0] flex items-center justify-between text-[10px] text-[#94A3B8] uppercase tracking-[0.1em]">
+          <p>Documento emitido em {formatarData(new Date().toISOString())}</p>
           <p>Paróquia de São Filipe — Papelão, Uíge</p>
         </div>
       </div>

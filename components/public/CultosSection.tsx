@@ -3,53 +3,48 @@ import Reveal from './Reveal'
 
 export default function CultosSection() {
   return (
-    <section id="cultos" className="py-24 bg-gray-50 scroll-mt-20">
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Cabeçalho */}
+    <section id="cultos" className="section bg-white scroll-mt-20">
+      <div className="container">
         <Reveal>
-          <div className="max-w-2xl mb-14">
-            <span className="text-xs font-semibold tracking-wider uppercase text-blue-700">
-              Cultos
-            </span>
-            <h2 className="mt-3 text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-              Horários dos Cultos
-            </h2>
-            <p className="mt-4 text-base text-gray-600 leading-relaxed">
-              Junta-te a nós na adoração. Temos cultos para todas as idades e
-              momentos da semana.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-14">
+            <div className="lg:col-span-4">
+              <span className="section-label">
+                <span className="w-8 h-px bg-[#0D6EFD]" />
+                Cultos
+              </span>
+            </div>
+
+            <div className="lg:col-span-8">
+              <h2 className="section-title">Horários dos cultos</h2>
+              <p className="section-subtitle">
+                Junta-te a nós na adoração. Temos cultos para todas as idades
+                e momentos da semana.
+              </p>
+            </div>
           </div>
         </Reveal>
 
-        {/* Grid de cultos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {CULTOS.map((culto, i) => (
             <Reveal key={culto.nome} delay={i * 80}>
-              <div className="group bg-white rounded-xl border border-gray-100 p-6 h-full transition-all duration-200 hover:border-blue-200 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-0.5">
-                {/* Ícone relógio */}
-                <div className="w-11 h-11 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center transition-colors duration-200 group-hover:bg-blue-900 group-hover:text-white">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.8}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
+              <div className="group relative bg-[var(--color-primary)] text-white rounded-[14px] p-5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-brand)]">
+                <div className="absolute top-0 right-0 w-20 h-20 rounded-full border border-white/10 -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+                <div className="relative w-10 h-10 rounded-md bg-white/15 border border-white/20 flex items-center justify-center transition-colors duration-200 group-hover:bg-white group-hover:text-[var(--color-primary)] group-hover:border-white">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
 
-                <h3 className="mt-5 text-base font-semibold text-gray-900">
+                <h3 className="relative mt-4 text-[15px] font-bold tracking-tight text-white">
                   {culto.nome}
                 </h3>
 
-                <p className="mt-3 text-sm text-gray-500">{culto.dia}</p>
+                <p className="relative mt-1.5 text-[11px] text-white/70 uppercase tracking-[0.08em] font-semibold">
+                  {culto.dia}
+                </p>
 
-                <p className="mt-1 text-lg font-semibold text-blue-900 tracking-tight">
+                <p className="relative mt-2 text-[17px] font-bold text-white tracking-tight tabular-nums">
                   {culto.inicio} — {culto.fim}
                 </p>
               </div>
